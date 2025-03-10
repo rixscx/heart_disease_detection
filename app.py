@@ -1,10 +1,20 @@
 import streamlit as st
 import pickle
 import numpy as np
+import os
 
-# Load the trained model
-with open("heart_disease_model.pkl", "rb") as model_file:
-    model = pickle.load(model_file)
+# Load the trained model safely
+model_path = os.path.join(os.path.dirname(__file__), "heart_disease_model.pkl")
+
+try:
+    with open(model_path, "rb") as model_file:
+        model = pickle.load(model_file)
+except FileNotFoundError:
+    st.error("🚨 Model file not found! Please ensure 'heart_disease_model.pkl' is in the correct directory.")
+    st.stop()
+except Exception as e:
+    st.error(f"🚨 Error loading model: {e}")
+    st.stop()
 
 # Custom Streamlit CSS for enhanced UI
 st.markdown("""
@@ -76,21 +86,24 @@ input_features = np.array([[age, sex, cp, trestbps, chol, fbs, restecg, thalach,
 # Prediction Button
 st.markdown("<br>", unsafe_allow_html=True)
 if st.button("🔮 Predict"):
-    prediction = model.predict(input_features)
-    result = "🛑 High Risk of Heart Disease" if prediction[0] == 1 else "✅ Low Risk of Heart Disease"
-    
-    # Display prediction result with styling
-    st.markdown(f"""
-        <div style="
-            background: {'#FF4B2B' if prediction[0] == 1 else '#28a745'};
-            padding: 15px;
-            border-radius: 10px;
-            text-align: center;
-            font-size: 20px;
-            color: white;
-            font-weight: bold;">
-            {result}
-        </div>
-    """, unsafe_allow_html=True)
+    try:
+        prediction = model.predict(input_features)
+        result = "🛑 High Risk of Heart Disease" if prediction[0] == 1 else "✅ Low Risk of Heart Disease"
+        
+        # Display prediction result with styling
+        st.markdown(f"""
+            <div style="
+                background: {'#FF4B2B' if prediction[0] == 1 else '#28a745'};
+                padding: 15px;
+                border-radius: 10px;
+                text-align: center;
+                font-size: 20px;
+                color: white;
+                font-weight: bold;">
+                {result}
+            </div>
+        """, unsafe_allow_html=True)
+    except Exception as e:
+        st.error(f"🚨 Prediction Error: {e}")
 
 st.markdown("</div>", unsafe_allow_html=True)
