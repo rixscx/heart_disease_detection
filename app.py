@@ -11,6 +11,15 @@ import plotly.graph_objects as go
 from PIL import Image
 import os
 import base64
+import streamlit as st
+import sys
+import subprocess
+
+# Add this at the top of your app to debug
+st.write("Python Version:", sys.version)
+st.write("Pip List:")
+result = subprocess.run([sys.executable, "-m", "pip", "list"], capture_output=True, text=True)
+st.code(result.stdout)
 
 # Set page configuration
 st.set_page_config(
