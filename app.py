@@ -1,7 +1,14 @@
 import streamlit as st
 import os
 import base64
-import importlib
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+from sklearn.decomposition import PCA
+from sklearn.preprocessing import StandardScaler
+from sklearn.ensemble import RandomForestClassifier
+import joblib
 
 # Page configuration
 st.set_page_config(
@@ -27,14 +34,24 @@ st.markdown("""
         border-bottom: 1px solid #e0e0e0;
         padding-bottom: 0.5rem;
     }
-    .info-box, .success-box, .warning-box {
+    .info-box {
+        background-color: #e3f2fd;
         padding: 1rem;
         border-radius: 5px;
         margin-bottom: 1rem;
     }
-    .info-box { background-color: #e3f2fd; }
-    .success-box { background-color: #e8f5e9; }
-    .warning-box { background-color: #fff8e1; }
+    .success-box {
+        background-color: #e8f5e9;
+        padding: 1rem;
+        border-radius: 5px;
+        margin-bottom: 1rem;
+    }
+    .warning-box {
+        background-color: #fff8e1;
+        padding: 1rem;
+        border-radius: 5px;
+        margin-bottom: 1rem;
+    }
     .stButton>button {
         background-color: #d32f2f;
         color: white;
@@ -42,81 +59,90 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
+# Main application header
 st.markdown("<h1 class='main-header'>Heart Disease Prediction System</h1>", unsafe_allow_html=True)
-st.markdown("<div class='info-box'>This application helps predict the risk of heart disease using machine learning.</div>", unsafe_allow_html=True)
+st.markdown("<div class='info-box'>This application helps predict the risk of heart disease based on patient data using machine learning algorithms.</div>", unsafe_allow_html=True)
 
-# Dependency management
-dependencies = {
-    "visualization": ["matplotlib.pyplot", "seaborn"],
-    "ml": ["sklearn.decomposition", "sklearn.preprocessing", "sklearn.ensemble", "joblib"],
-    "interactive": ["plotly.express", "plotly.graph_objects"],
-    "image": ["PIL.Image"]
-}
-
-missing_deps = []
-loaded_modules = {}
-
-for category, modules in dependencies.items():
-    for module in modules:
-        try:
-            loaded_modules[module] = importlib.import_module(module)
-        except ImportError:
-            missing_deps.append(module)
-
-# Sidebar Navigation
+# Create sidebar navigation
 with st.sidebar:
     st.image("https://www.heart.org/-/media/Images/Health-Topics/Heart-Attack/Heart-Attack-Lifestyle-Image.jpg", width=300)
     st.title("Navigation")
-    app_mode = st.radio("Select a section", ["📊 Dashboard", "💡 Prediction", "📝 Data Upload", "ℹ️ About"])
-    if missing_deps:
-        st.sidebar.warning("Some features may be limited due to missing dependencies.")
+    
+    app_mode = st.radio(
+        "Select a section",
+        ["📊 Dashboard", "💡 Prediction", "📝 Data Upload", "ℹ️ About"]
+    )
 
+# Main application logic based on mode
 if app_mode == "📊 Dashboard":
     st.markdown("<h2 class='sub-header'>Heart Health Dashboard</h2>", unsafe_allow_html=True)
-    if "matplotlib.pyplot" in loaded_modules and "plotly.express" in loaded_modules:
-        st.markdown("<div class='success-box'>Explore key heart health indicators and trends</div>", unsafe_allow_html=True)
-    else:
-        st.markdown("<div class='warning-box'>Enhanced visualizations unavailable.</div>", unsafe_allow_html=True)
+    
+    st.markdown("<div class='success-box'>Explore key heart health indicators and trends</div>", unsafe_allow_html=True)
+    
+    col1, col2 = st.columns(2)
+    with col1:
+        st.subheader("Age Distribution")
+        st.info("Age distribution visualization would appear here")
+    
+    with col2:
+        st.subheader("Risk Factors")
+        st.info("Risk factors visualization would appear here")
 
 elif app_mode == "💡 Prediction":
     st.markdown("<h2 class='sub-header'>Heart Disease Risk Prediction</h2>", unsafe_allow_html=True)
-    if "sklearn.ensemble" in loaded_modules:
-        with st.form("prediction_form"):
+    
+    st.markdown("<div class='info-box'>Enter patient data to predict heart disease risk</div>", unsafe_allow_html=True)
+    
+    with st.form("prediction_form"):
+        col1, col2, col3 = st.columns(3)
+        
+        with col1:
             age = st.slider("Age", 18, 100, 50)
             gender = st.selectbox("Gender", ["Male", "Female"])
-            submit_button = st.form_submit_button(label="Predict Risk")
-        if submit_button:
-            st.markdown("<div class='success-box'>Prediction results appear here.</div>", unsafe_allow_html=True)
-            st.balloons()
-    else:
-        st.markdown("<div class='warning-box'>Prediction unavailable.</div>", unsafe_allow_html=True)
+            chest_pain = st.selectbox("Chest Pain Type", ["Typical Angina", "Atypical Angina", "Non-anginal Pain", "Asymptomatic"])
+        
+        with col2:
+            resting_bp = st.slider("Resting Blood Pressure (mm Hg)", 90, 200, 120)
+            cholesterol = st.slider("Cholesterol (mg/dl)", 100, 600, 200)
+            fasting_bs = st.selectbox("Fasting Blood Sugar > 120 mg/dl", ["No", "Yes"])
+        
+        with col3:
+            rest_ecg = st.selectbox("Resting ECG Results", ["Normal", "ST-T Wave Abnormality", "Left Ventricular Hypertrophy"])
+            max_hr = st.slider("Maximum Heart Rate", 60, 220, 150)
+            exercise_angina = st.selectbox("Exercise Induced Angina", ["No", "Yes"])
+        
+        submit_button = st.form_submit_button(label="Predict Risk")
+    
+    if submit_button:
+        st.markdown("<div class='success-box'>Prediction results would appear here</div>", unsafe_allow_html=True)
+        st.balloons()
 
 elif app_mode == "📝 Data Upload":
     st.markdown("<h2 class='sub-header'>Upload Patient Data</h2>", unsafe_allow_html=True)
+    st.markdown("<div class='info-box'>Upload patient data for batch processing or analysis</div>", unsafe_allow_html=True)
+    
     uploaded_file = st.file_uploader("Choose a CSV file", type="csv")
-    if uploaded_file:
+    if uploaded_file is not None:
         try:
-            data = loaded_modules.get("pandas").read_csv(uploaded_file)
-            st.success(f"Successfully uploaded {data.shape[0]} records.")
+            data = pd.read_csv(uploaded_file)
+            st.success(f"Successfully uploaded file containing {data.shape[0]} records with {data.shape[1]} features.")
+            
+            st.subheader("Data Preview")
             st.dataframe(data.head())
+            
+            st.subheader("Data Analysis Options")
+            if st.button("Generate Statistics"):
+                st.write(data.describe())
+            
         except Exception as e:
             st.error(f"Error processing file: {str(e)}")
 
 elif app_mode == "ℹ️ About":
+    st.markdown("<h2 class='sub-header'>About This Application</h2>", unsafe_allow_html=True)
     st.markdown("""
-    <h2 class='sub-header'>About This Application</h2>
     <div class='info-box'>
-    <p>The Heart Disease Prediction System is a clinical decision support tool.</p>
-    <h3>How It Works</h3>
-    <ol>
-        <li>Enter patient data</li>
-        <li>Machine learning analyzes data</li>
-        <li>Prediction results displayed</li>
-    </ol>
-    <h3>Disclaimer</h3>
-    <p>This tool is for educational purposes and should not replace medical advice.</p>
+    <p>The Heart Disease Prediction System is a clinical decision support tool designed to help healthcare professionals assess patient risk for heart disease.</p>
+    
+    <p>This application uses machine learning algorithms trained on historical patient data to identify patterns and predict risk factors for heart disease.</p>
     </div>
     """, unsafe_allow_html=True)
-
-if missing_deps:
-    st.error(f"Missing dependencies: {', '.join(missing_deps)}")
