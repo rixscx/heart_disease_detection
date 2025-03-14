@@ -1,46 +1,58 @@
 import streamlit as st
-import sys
-import subprocess
-import importlib
 
-# Function to check if a package is installed
-def is_package_installed(package_name):
+st.title("Heart Disease Prediction System")
+
+try:
+    # Try importing required packages
+    import pandas as pd
+    import numpy as np
+    
+    # Check if matplotlib is available
     try:
-        importlib.import_module(package_name)
-        return True
+        import matplotlib.pyplot as plt
+        import seaborn as sns
+        matplotlib_available = True
     except ImportError:
-        return False
-
-# Install required packages if not already installed
-packages_to_check = [
-    "matplotlib",
-    "seaborn",
-    "sklearn",
-    "joblib",
-    "plotly"
-]
-
-missing_packages = [pkg for pkg in packages_to_check if not is_package_installed(pkg)]
-
-if missing_packages:
-    st.warning(f"Installing missing packages: {', '.join(missing_packages)}")
-    for package in missing_packages:
-        subprocess.check_call([sys.executable, "-m", "pip", "install", package])
-    st.success("Packages installed! Rerunning the app...")
-    st.experimental_rerun()
-
-# Regular imports
-import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
-import seaborn as sns
-import joblib
-from sklearn.decomposition import PCA
-from sklearn.preprocessing import StandardScaler
-import plotly.express as px
-import plotly.graph_objects as go
-from PIL import Image
-import os
-import base64
-
-# Continue with the rest of your app...
+        matplotlib_available = False
+        st.error("Matplotlib/Seaborn packages are not available. Some visualizations will not be displayed.")
+    
+    # Check if sklearn is available
+    try:
+        from sklearn.decomposition import PCA
+        from sklearn.preprocessing import StandardScaler
+        import joblib
+        sklearn_available = True
+    except ImportError:
+        sklearn_available = False
+        st.error("Scikit-learn packages are not available. Prediction functionality will be limited.")
+    
+    # Check if plotly is available
+    try:
+        import plotly.express as px
+        import plotly.graph_objects as go
+        plotly_available = True
+    except ImportError:
+        plotly_available = False
+        st.error("Plotly package is not available. Interactive visualizations will not be displayed.")
+    
+    # Check for PIL
+    try:
+        from PIL import Image
+        pil_available = True
+    except ImportError:
+        pil_available = False
+    
+    import os
+    import base64
+    
+    # Continue with your app, but check availability flags before using packages
+    
+    # For example, in your visualization section:
+    # if matplotlib_available and plotly_available:
+    #     # Create and display visualizations
+    # else:
+    #     st.warning("Some visualization packages are missing. Please contact the app administrator.")
+    
+except Exception as e:
+    st.error(f"Error initializing app: {str(e)}")
+    st.info("This app requires several Python packages that appear to be unavailable in this environment. Please contact the app administrator for assistance.")
