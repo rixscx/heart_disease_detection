@@ -158,3 +158,5 @@ For inquiries or collaboration:
 
 This application is for educational purposes only and does not constitute medical advice. It is not a substitute for professional healthcare services. Consult a medical professional for accurate diagnosis and treatment recommendations.
 
+## Guidance
+This project incorporates insights from Victor Ikechukwu, an ML researcher. Special thanks to his work on [50-Days-of-Python](https://github.com/Victor-Ikechukwu/50-Days-of-Python) for inspiring parts of our Python implementation.
