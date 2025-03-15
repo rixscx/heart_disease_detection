@@ -1,5 +1,7 @@
 # Heart Disease Prediction System
 
+![Screenshot](Images/SS_heart.png)
+
 The Heart Disease Prediction System is an interactive web application built with Streamlit that leverages machine learning to predict the risk of heart disease. By utilizing historical patient data and advanced ML techniques, the application provides users with accurate risk assessments and insightful visualizations. Designed with a user-friendly interface, this tool aims to make heart health insights accessible to individuals regardless of their medical expertise.
 
 ## Table of Contents
